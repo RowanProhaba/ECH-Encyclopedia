@@ -8,17 +8,17 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              https://127.0.0.1
+ * @link              https://#
  * @since             1.0.0
  * @package           Ech_Encyclopedia
  *
  * @wordpress-plugin
  * Plugin Name:       ECH Encyclopedia
- * Plugin URI:        https://127.0.0.1
- * Description:       This is a description of the plugin.
+ * Plugin URI:        https://#
+ * Description:       This plugin creates shortcode to show all ECH encyclopedia list and single post profile page. It is integrated with AI Medical api.
  * Version:           1.0.0
  * Author:            Rowan Chang
- * Author URI:        https://127.0.0.1/
+ * Author URI:        https://#
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       ech-encyclopedia

@@ -30,7 +30,10 @@ class Ech_Encyclopedia_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		$domain_api = get_option( 'ech_encyclopedia_domain_url' );   
+		if(empty($domain_api) || !$domain_api ) {
+			add_option( 'ech_encyclopedia_domain_url', 'https://aimedicalcentre.com' );
+		}
 	}
 
 }

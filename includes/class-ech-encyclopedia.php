@@ -157,6 +157,12 @@ class Ech_Encyclopedia {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
+		// ^^^ Add admin menu items
+    $this->loader->add_action('admin_menu', $plugin_admin, 'ech_encyclopedia_admin_menu');
+
+    // ^^^ Register our plugin settings
+    $this->loader->add_action('admin_init', $plugin_admin, 'reg_ech_encyclopedia_general_settings');
+
 	}
 
 	/**
