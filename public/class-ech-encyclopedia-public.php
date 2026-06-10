@@ -181,7 +181,7 @@ class Ech_Encyclopedia_Public {
      ***********************************************************/
     public function getAPIDomain()
     {
-        $domain = get_option('ech_dmn_domain_url');
+        $domain = get_option('ech_encyclopedia_domain_url');
         return $domain;
     }
 	/****************************************
