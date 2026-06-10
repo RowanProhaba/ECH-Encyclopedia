@@ -58,6 +58,15 @@ function deactivate_ech_encyclopedia() {
 register_activation_hook( __FILE__, 'activate_ech_encyclopedia' );
 register_deactivation_hook( __FILE__, 'deactivate_ech_encyclopedia' );
 
+/****************************************
+ * Create an option "run_init_createVP" once plugin is activated
+ ****************************************/
+function encyclopedia_activate_initialize_createVP() {
+	require_once plugin_dir_path( __FILE__ ) . 'public/class-ech-encyclopedia-virtual-pages.php';
+	Ech_Encyclopedia_Virtual_Pages::encyclopedia_initialize_createVP();
+}
+register_activation_hook( __FILE__, 'encyclopedia_activate_initialize_createVP' );
+
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.

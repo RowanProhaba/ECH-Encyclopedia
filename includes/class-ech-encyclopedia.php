@@ -121,6 +121,7 @@ class Ech_Encyclopedia {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-ech-encyclopedia-public.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-ech-encyclopedia-virtual-pages.php';
 
 		$this->loader = new Ech_Encyclopedia_Loader();
 
@@ -175,9 +176,17 @@ class Ech_Encyclopedia {
 	private function define_public_hooks() {
 
 		$plugin_public = new Ech_Encyclopedia_Public( $this->get_plugin_name(), $this->get_version() );
+		$virtual_page_public = new Ech_Encyclopedia_Virtual_Pages( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+		// ^^^ Add shortcodes
+		$this->loader->add_shortcode('ech_encyclopedia', $plugin_public, 'ech_encyclopedia_func');
+		$this->loader->add_shortcode('ech_encyclopedia_single_post_output', $virtual_page_public, 'ech_encyclopedia_single_post_output');
+
+		// ^^^ Create VP after WordPress has finished loading, but before any headers are sent
+		$this->loader->add_action('init', $virtual_page_public, 'encyclopedia_createVP');
 
 	}
 

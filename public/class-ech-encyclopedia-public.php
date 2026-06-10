@@ -72,9 +72,7 @@ class Ech_Encyclopedia_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if (strpos($_SERVER['REQUEST_URI'], "encyclopedia") !== false) {
-			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ech-encyclopedia-public.css', array(), $this->version, 'all' );
-		}
+        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ech-encyclopedia-public.css', array(), $this->version, 'all' );
 
 	}
 
@@ -96,9 +94,8 @@ class Ech_Encyclopedia_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if (strpos($_SERVER['REQUEST_URI'], "encyclopedia") !== false) {
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ech-encyclopedia-public.js', array( 'jquery' ), $this->version, false );
-		}
+        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ech-encyclopedia-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script($this->plugin_name . '_pagination', plugin_dir_url(__FILE__) . 'js/ech-encyclopedia-pagination.js', array('jquery'), $this->version, false);			
 
 	}
 
@@ -113,86 +110,71 @@ class Ech_Encyclopedia_Public {
 
         $api_args = array(
             'ppp' => $ppp,
-            'dr' => $filterDrID,
             'encyclopedia_cat' => $filterCatID,
             'brand' => $filterBrandID,
         );
-        $api_link = $this->ECHD_gen_news_link_api_link($api_args);
-        $get_news_json = $this->ECHD_wp_remote_get_news_json($api_link);
-        $json_arr = json_decode($get_news_json, true);
+        $api_link = $this->gen_encyclopedia_link_api_link($api_args);
+        $get_encyclopedia_json = $this->wp_remote_get_encyclopedia_json($api_link);
+        $json_arr = json_decode($get_encyclopedia_json, true);
 
         $output = '';
 
-        // *********** Custom styling ***************/
-        if (!empty(get_option('ech_dmn_submitBtn_color')) || !empty(get_option('ech_dmn_submitBtn_hoverColor') || !empty(get_option('ech_dmn_submitBtn_text_color')) || !empty(get_option('ech_dmn_submitBtn_text_hoverColor')))) {
-            $output .= '<style>';
-
-            $output .= '.ech-dmn-dr-news-container .news-btn button { ';
-            (!empty(get_option('ech_dmn_submitBtn_color'))) ? $output .= 'background:' . get_option('ech_dmn_submitBtn_color') . ';' : '';
-            (!empty(get_option('ech_dmn_submitBtn_text_color'))) ? $output .= 'color:' . get_option('ech_dmn_submitBtn_text_color') . ';' : '';
-            $output .= '}';
-
-            $output .= '.ech-dmn-dr-news-container .news-btn button:hover { ';
-            (!empty(get_option('ech_dmn_submitBtn_hoverColor'))) ? $output .= 'background:' . get_option('ech_dmn_submitBtn_hoverColor') . ';' : '';
-            (!empty(get_option('ech_dmn_submitBtn_text_hoverColor'))) ? $output .= 'color:' . get_option('ech_dmn_submitBtn_text_hoverColor') . ';' : '';
-            $output .= '}';
-
-            $output .= '</style>';
-        }
-        // *********** (END) Custom styling ****************/
-
-        $output .= '<div class="ech-dmn-dr-news-container">';
-
-        /***** Filters *****/
-
-        $output .= '<div class="ech-dmn-filter-container">';
-
-        if($enableFilterDrID) {
-            $output .= $this->filters->ECHD_get_dr_categories_list($filterDrID);
-        }
-        if($enableFilterSpecID) {
-            $output .= $this->filters->ECHD_get_specialty_categories_list($filterSpecID);
-        }
-        if($enableFilterBrandID) {
-            $output .= $this->filters->ECHD_get_brand_categories_list($filterBrandID);
-        }
-
-
-        $output .= '<div class="news-btn">';
-        $output .= '<button id="newsSearchBtn" type="button" disabled>' . $this->ECHD_echolang(['Search', '搜尋', '搜寻']) . '</button>';
-        $output .= '<button id="resetBtn" type="button" disabled>' . $this->ECHD_echolang(['Reset', '清除', '清除']) . '</button>';
-        $output .= '</div>';
-        $output .= '</div>'; //ech-dmn-filter-container
-        /***** (end)Filters *****/
-
-
         /*********** POST LIST ************/
-        $output .= '<div class="ech-dmn-news-container" >';
+        $output .= '<div class="ech-encyclopedia-container" >';
 
-        $output .= '<div class="news-list" data-ajaxurl="' . get_admin_url(null, 'admin-ajax.php') . '" data-ppp="' . $ppp . '" data-page="1" data-specialties="' . $filterSpecID . '" data-dr="' . $filterDrID . '" data-brand="' . $filterBrandID . '">';
+        $output .= '<div class="encyclopedia-list" data-ajaxurl="' . get_admin_url(null, 'admin-ajax.php') . '" data-ppp="' . $ppp . '" data-page="1" data-cat="' . $filterCatID . '" data-brand="' . $filterBrandID . '">';
         foreach ($json_arr['posts_data'] as $post) {
-            $output .= $this->ECHD_load_post_card_template($post);
+            $output .= $this->load_post_card_template($post);
         }
-        $output .= '</div>'; //news-list
+        $output .= '</div>'; //encyclopedia-list
 
-        /*** loading div ***/
-        $output .= '<div class="loading-news">' . $this->ECHD_echolang(['Loading...', '載入中...', '载入中...']) . '</div>';
-        /*** (end) loading div ***/
-        $output .= '<div class="news-btn">';
-        $output .= '<button id="moreNewsBtn" type="button">' . $this->ECHD_echolang(['More articles', '更多文章', '更多文章']) . '</button>';
-        $output .= '</div>';
+		/*** pagination ***/
+        $total_posts = $json_arr['count'];
+		$max_page = ceil($total_posts / $ppp);
+		$output .= '<div class="ech-encyclopedia-pagination" data-current-page="1" data-max-page="' . $max_page . '" data-topage="" data-cat="' . $filterCatID . '" data-brand-id="' . $filterBrandID . '" data-ajaxurl="' . get_admin_url(null, 'admin-ajax.php') . '"></div>';
+		/*** (end) pagination ***/
 
 
-        $output .= '</div>'; //ech-dmn-news-container
+
+        $output .= '</div>'; //ech-encyclopedia-container
 
         /*********** (END) POST LIST ************/
-
-        $output .= '</div>'; //ech-dmn-dr-news-container
-
-
         return $output;
     } // ech_encyclopedia_func()
-		/**************************** API ****************************/
+    public function load_post_card_template($post)
+    {
+        $html = '';
+        $encyclopedia_cat_id = [];
+        $encyclopedia_cat_name = [];
+        $brand_category_id = [];
+        $brand_category_name = [];
+        $featured_image = ($post['featured_image']['has_featured_image']) ? $post['featured_image']['url'] : get_option('ech_dmn_default_post_featured_img');
+        foreach ($post['encyclopedia_category'] as $cat) {
+            array_push($encyclopedia_cat_id, $cat['id']);
+            array_push($encyclopedia_cat_name, $this->echoLang([$cat['name_en'],$cat['name_zh'],$cat['name_sc']]));
+        }
+
+        foreach ($post['brand_category'] as $brand) {
+            array_push($brand_category_id, $brand['id']);
+            array_push($brand_category_name, $this->echoLang([$brand['name_en'],$brand['name_zh'],$brand['name_sc']]));
+        }
+
+        $html .= '<div class="encyclopedia-card" data-post="' . $post['id'] . '" data-cat="' . implode(',', $encyclopedia_cat_id) . '" data-brand="' . implode(',', $brand_category_id) . '">';
+        if($post['featured_image']['has_featured_image']) {
+            $html .= '<div class="featured-image">';
+            $html .= '<img src="' . $featured_image . '" alt="' . $post['featured_image']['alt_text'] . '">';
+            $html .= '</div>';
+        }
+        $html .= '<div class="encyclopedia-info">';
+        $html .= '<div class="encyclopedia-title"><a href="' . site_url() . '/encyclopedia/encyclopedia-content/?postid=' . $post['id'] . '"><h1>' . $post['title'] . '</h1></a></div>';
+        $html .= '<h4 class="encyclopedia-cat"><i aria-hidden="true" class="fas fa-tags"></i> ' . implode(' ', $encyclopedia_cat_name) . '</h4>';
+        $html .= '<a href="' . site_url() . '/encyclopedia/encyclopedia-content/?postid=' . $post['id'] . '">' . $this->echoLang(['Read More','閱讀更多','阅读更多']) . '</a>';
+        $html .= '</div>';
+        $html .= '</div>';
+
+        return $html;
+    }
+    /**************************** API ****************************/
 
     /***********************************************************
      * Get API domain
@@ -202,7 +184,7 @@ class Ech_Encyclopedia_Public {
         $domain = get_option('ech_dmn_domain_url');
         return $domain;
     }
-		/****************************************
+	/****************************************
      * Filter and merge value and return a full API Encyclopedia List link.
      * Array key: ppp, page, encyclopedia_cat, brand
      ****************************************/
@@ -223,9 +205,6 @@ class Ech_Encyclopedia_Public {
 
             if(isset($args['brand']) && !empty($args['brand'])){
             	$full_api .='&brand='.$args['brand'];
-            }
-            if(isset($args['id']) && !empty($args['id'])) {
-                $full_api .= '&id=' . $args['id'];
             }
         }
         return $full_api;
@@ -261,7 +240,7 @@ class Ech_Encyclopedia_Public {
 
     /**************************** (end)API ****************************/
 
-		/****************************************
+	/****************************************
      * Get Encyclopedia JSON Using API
      ****************************************/
 		public function wp_remote_get_encyclopedia_json($api_link)
@@ -286,7 +265,7 @@ class Ech_Encyclopedia_Public {
         return $result;
     }
 
-		/****************************************
+	/****************************************
      * DISPLAY SPECIFIC LANGUAGE
      ****************************************/
     public function echoLang($stringArr)

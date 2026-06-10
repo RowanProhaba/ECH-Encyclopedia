@@ -111,9 +111,7 @@ class Ech_Encyclopedia_Admin
      */
     public function ech_encyclopedia_admin_menu()
     {
-			if (isset($_GET['page']) && $_GET['page'] == 'reg_ech_encyclopedia_general_settings') {
         add_menu_page('ECH Encyclopedia Settings', 'ECH Encyclopedia', 'manage_options', 'reg_ech_encyclopedia_general_settings', array($this, 'ech_encyclopedia_admin_page'), 'dashicons-book-alt', 110);
-			}
     }
     // return view
     public function ech_encyclopedia_admin_page()
