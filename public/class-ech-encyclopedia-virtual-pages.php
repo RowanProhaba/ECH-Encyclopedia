@@ -77,16 +77,9 @@ class Ech_Encyclopedia_Virtual_Pages extends Ech_Encyclopedia_Public
 
             $post = $json_arr;
             $post_title = $post['title'];
-            $post_content = parent::echoLang([$post['acf']['content_en'], $post['acf']['content_zh'], $post['acf']['content_sc']]);
-            $meta_description = parent::echoLang([$post['acf']['meta_description_en'], $post['acf']['meta_description_zh'], $post['acf']['meta_description_sc']]);
-            $formTemplete = get_option('ech_dmn_form_shortcode');
-            $display_spec_tag = get_option('ech_dmn_display_spec_tag') ? 0 : 1;
-            $display_dr_tag = get_option('ech_dmn_display_dr_tag') ? 0 : 1;
-            $display_brand_tag = get_option('ech_dmn_display_brand_tag') ? 0 : 1;
+            $post_content = parent::echoLang([$post['acf']['content_en'], $post['acf']['content_zn'], $post['acf']['content_sc']]);
             $encyclopedia_cat_id = [];
             $encyclopedia_cat_name = [];
-            $dr_category_id = [];
-            $dr_category_name = [];
             $brand_category_id = [];
             $brand_category_name = [];
             foreach ($post['encyclopedia_category'] as $cat) {

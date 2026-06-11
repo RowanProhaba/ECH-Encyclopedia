@@ -234,7 +234,6 @@ class Ech_Encyclopedia_Public {
             $full_api .= '&';
             $full_api .= 'postid=' . $args['postid'];
         }
-
         return $full_api;
     }
 
