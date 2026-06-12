@@ -72,7 +72,9 @@ class Ech_Encyclopedia_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-        wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ech-encyclopedia-public.css', array(), $this->version, 'all' );
+        if (strpos($_SERVER['REQUEST_URI'], "encyclopedia") !== false) {
+            wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/ech-encyclopedia-public.css', array(), $this->version, 'all' );
+        }
 
 	}
 
@@ -94,8 +96,10 @@ class Ech_Encyclopedia_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-        wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ech-encyclopedia-public.js', array( 'jquery' ), $this->version, false );
-		wp_enqueue_script($this->plugin_name . '_pagination', plugin_dir_url(__FILE__) . 'js/ech-encyclopedia-pagination.js', array('jquery'), $this->version, false);			
+        if (strpos($_SERVER['REQUEST_URI'], "encyclopedia") !== false) {
+            wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ech-encyclopedia-public.js', array( 'jquery' ), $this->version, false );
+            wp_enqueue_script($this->plugin_name . '_pagination', plugin_dir_url(__FILE__) . 'js/ech-encyclopedia-pagination.js', array('jquery'), $this->version, false);			
+        }
 
 	}
 
@@ -107,11 +111,13 @@ class Ech_Encyclopedia_Public {
         // check if specific filters are set.
         $filterCatID = get_option('ech_encyclopedia_cat_filter');
         $filterBrandID = get_option('ech_encyclopedia_brand_filter');
+        $filterSpecID = get_option('ech_encyclopedia_spec_filter');
 
         $api_args = array(
             'ppp' => $ppp,
             'encyclopedia_cat' => $filterCatID,
             'brand' => $filterBrandID,
+            'spec' => $filterSpecID,
         );
         $api_link = $this->gen_encyclopedia_link_api_link($api_args);
         $get_encyclopedia_json = $this->wp_remote_get_encyclopedia_json($api_link);
@@ -143,23 +149,41 @@ class Ech_Encyclopedia_Public {
     } // ech_encyclopedia_func()
     public function load_post_card_template($post)
     {
-        $html = '';
         $encyclopedia_cat_id = [];
         $encyclopedia_cat_name = [];
-        $brand_category_id = [];
-        $brand_category_name = [];
+        $encyclopedia_cats = [];
+        // $brand_category_id = [];
+        // $brand_category_name = [];
+        $spec_cat_id = [];
+        $spec_cat_name = [];
+        $spec_cats = [];
         $featured_image = ($post['featured_image']['has_featured_image']) ? $post['featured_image']['url'] : get_option('ech_dmn_default_post_featured_img');
         foreach ($post['encyclopedia_category'] as $cat) {
-            array_push($encyclopedia_cat_id, $cat['id']);
-            array_push($encyclopedia_cat_name, $this->echoLang([$cat['name_en'],$cat['name_zh'],$cat['name_sc']]));
+            $encyclopedia_cat_id[] = $cat['id'];
+            $encyclopedia_cat_name[] = $this->echoLang([$cat['name_en'],$cat['name_zh'],$cat['name_sc']]);
+            $encyclopedia_cats[] = [
+                'id' => $cat['id'],
+                'name' => $this->echoLang([$cat['name_en'],$cat['name_zh'],$cat['name_sc']]) 
+            ];
         }
 
-        foreach ($post['brand_category'] as $brand) {
-            array_push($brand_category_id, $brand['id']);
-            array_push($brand_category_name, $this->echoLang([$brand['name_en'],$brand['name_zh'],$brand['name_sc']]));
-        }
+        // foreach ($post['brand_category'] as $brand) {
+        //     array_push($brand_category_id, $brand['id']);
+        //     array_push($brand_category_name, $this->echoLang([$brand['name_en'],$brand['name_zh'],$brand['name_sc']]));
+        // }
 
-        $html .= '<div class="encyclopedia-card" data-post="' . $post['id'] . '" data-cat="' . implode(',', $encyclopedia_cat_id) . '" data-brand="' . implode(',', $brand_category_id) . '">';
+        foreach ($post['spec_category'] as $spec) {
+            $spec_cat_id[] = $spec['id'];
+            $spec_cat_name[] = $this->echoLang([$cat['name_en'],$cat['name_zh'],$cat['name_sc']]);
+            $spec_cats[] = [
+                'id' => $spec['id'],
+                'name' => $this->echoLang([$spec['name_en'],$spec['name_zh'],$spec['name_sc']])
+            ];
+        }
+        
+        $html = '';
+
+        $html .= '<div class="encyclopedia-card" data-post="' . $post['id'] . '" data-cat="' . implode(',', $encyclopedia_cat_id) . '" data-spec="' . implode(',', $spec_cat_id) . '">';
         if($post['featured_image']['has_featured_image']) {
             $html .= '<div class="featured-image">';
             $html .= '<img src="' . $featured_image . '" alt="' . $post['featured_image']['alt_text'] . '">';
@@ -167,7 +191,23 @@ class Ech_Encyclopedia_Public {
         }
         $html .= '<div class="encyclopedia-info">';
         $html .= '<div class="encyclopedia-title"><a href="' . site_url() . '/encyclopedia/encyclopedia-content/?postid=' . $post['id'] . '"><h1>' . $post['title'] . '</h1></a></div>';
-        $html .= '<h4 class="encyclopedia-cat"><i aria-hidden="true" class="fas fa-tags"></i> ' . implode(' ', $encyclopedia_cat_name) . '</h4>';
+        $html .= '<h4 class="encyclopedia-cat">';
+        if($encyclopedia_cats) {
+            $html .= '<span><i aria-hidden="true" class="fas fa-tags"></i>';
+            foreach ($encyclopedia_cats as $cat) {
+                $html .= '<a href="' . site_url() . '/encyclopedia/?encyclopedia_cat=' . $cat['id'] . '">' . $cat['name'] . '</a> ';
+            }
+            $html .= '</span>';
+        }
+        if($spec_cats) {
+            $html .= '<span><i aria-hidden="true" class="fas fa-stethoscope"></i>';
+            foreach ($spec_cats as $spec) {
+                $html .= '<a href="' . site_url() . '/encyclopedia/?spec_cat=' . $spec['id'] . '">' . $spec['name'] . '</a> ';
+            }
+            $html .= '</span>';
+        }
+
+        $html .= '</h4>';
         $html .= '<a href="' . site_url() . '/encyclopedia/encyclopedia-content/?postid=' . $post['id'] . '">' . $this->echoLang(['Read More','閱讀更多','阅读更多']) . '</a>';
         $html .= '</div>';
         $html .= '</div>';
@@ -188,7 +228,7 @@ class Ech_Encyclopedia_Public {
      * Filter and merge value and return a full API Encyclopedia List link.
      * Array key: ppp, page, encyclopedia_cat, brand
      ****************************************/
-		public function gen_encyclopedia_link_api_link(array $args)
+	public function gen_encyclopedia_link_api_link(array $args)
     {
         $full_api = $this->getAPIDomain() . '/wp-json/am-api/v1/encyclopedia_list?';
 
@@ -206,7 +246,11 @@ class Ech_Encyclopedia_Public {
             if(isset($args['brand']) && !empty($args['brand'])){
             	$full_api .='&brand='.$args['brand'];
             }
+            if(isset($args['spec_cat']) && !empty($args['spec_cat'])){
+            	$full_api .='&spec_cat='.$args['spec_cat'];
+            }
         }
+        error_log($full_api);
         return $full_api;
     }
 		public function gen_encyclopedia_categories_api_link()
